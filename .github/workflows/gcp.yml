@@ -6,8 +6,8 @@ on:
       - "*"
 
 jobs:
-  build-push-release:
-    name: Build and Push to GCP ( Release )
+  build-push-goarif:
+    name: Build and Push to GCP ( Go Arif )
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: maintenance
@@ -16,12 +16,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Github Tag Release Version
+      - name: Github Tag Go Arif Version
         id: latestTag
         run: |-
           echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
-          echo "RELEASE_VERSION=release-${{ github.ref_name }}" >> $GITHUB_ENV
-
+          echo "GOARIF_VERSION=goarif-${{ github.ref_name }}" >> $GITHUB_ENV
+  
       - name: Google Cloud Platform Auth
         uses: "google-github-actions/auth@v1"
         with:
@@ -32,7 +32,7 @@ jobs:
 
       - name: Build Docker Image
         run: |-
-          docker build -t $IMAGE_NAME:latest .
+          docker build -f Dockerfile.goarif -t $IMAGE_NAME:goarif .
 
       - name: Configure Docker Client
         run: |-
@@ -41,25 +41,23 @@ jobs:
 
       - name: Push Docker Image to Artifact Registry
         run: |-
-          docker tag $IMAGE_NAME:latest asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:latest
-          docker tag $IMAGE_NAME:latest asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:release
-          docker tag $IMAGE_NAME:latest asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:${{ env.RELEASE_VERSION }}
-          docker push asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:latest
-          docker push asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:release
-          docker push asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:${{ env.RELEASE_VERSION }}
+          docker tag $IMAGE_NAME:goarif asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:goarif
+          docker tag $IMAGE_NAME:goarif asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:${{ env.GOARIF_VERSION }}
+          docker push asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:goarif
+          docker push asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:${{ env.GOARIF_VERSION }}
 
       - name: Call Webhook
         uses: joelwmale/webhook-action@2.3.2
         env:
           IMAGE_REGISTRY: Google Cloud Artifact
           IMAGE_REPOSITORY: asia-southeast2-docker.pkg.dev/${{ env.PROJECT_ID }}/images/${{ env.IMAGE_NAME }}
-          IMAGE_TAG: ${{ env.RELEASE_VERSION }}
+          IMAGE_TAG: ${{ env.GOARIF_VERSION }}
         with:
           url: ${{ secrets.WEBHOOK_URL }}/api/v1/workflow-github?telegram_chat_id=${{ secrets.TELEGRAM_CHAT_ID }}&registry=Google Cloud Platform
           body: '{"push_data":{"tag":"${{ env.IMAGE_TAG }}"},"repository":{"name":"${{ env.IMAGE_REPOSITORY }}"}}'
 
-  build-push-staging:
-    name: Build and Push to GCP ( Staging )
+  build-push-orison-tech:
+    name: Build and Push to GCP ( Orison Tech )
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: maintenance
@@ -68,11 +66,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Github Tag Staging Version
+      - name: Github Tag Orison Tech Version
         id: latestTag
         run: |-
           echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
-          echo "STAGING_VERSION=staging-${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "ORISON_TECH_VERSION=orison-tech-${{ github.ref_name }}" >> $GITHUB_ENV
 
       - name: Google Cloud Platform Auth
         uses: "google-github-actions/auth@v1"
@@ -84,7 +82,7 @@ jobs:
 
       - name: Build Docker Image
         run: |-
-          docker build -f Dockerfile.dev -t $IMAGE_NAME:staging .
+          docker build -f Dockerfile.orisontech -t $IMAGE_NAME:orison-tech .
 
       - name: Configure Docker Client
         run: |-
@@ -93,17 +91,17 @@ jobs:
 
       - name: Push Docker Image to Artifact Registry
         run: |-
-          docker tag $IMAGE_NAME:staging asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:staging
-          docker tag $IMAGE_NAME:staging asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:${{ env.STAGING_VERSION }}
-          docker push asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:staging
-          docker push asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:${{ env.STAGING_VERSION }}
+          docker tag $IMAGE_NAME:orison-tech asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:orison-tech
+          docker tag $IMAGE_NAME:orison-tech asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:${{ env.ORISON_TECH_VERSION }}
+          docker push asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:orison-tech
+          docker push asia-southeast2-docker.pkg.dev/$PROJECT_ID/images/$IMAGE_NAME:${{ env.ORISON_TECH_VERSION }}
 
       - name: Call Webhook
         uses: joelwmale/webhook-action@2.3.2
         env:
           IMAGE_REGISTRY: Google Cloud Artifact
           IMAGE_REPOSITORY: asia-southeast2-docker.pkg.dev/${{ env.PROJECT_ID }}/images/${{ env.IMAGE_NAME }}
-          IMAGE_TAG: ${{ env.STAGING_VERSION }}
+          IMAGE_TAG: ${{ env.ORISON_TECH_VERSION }}
         with:
           url: ${{ secrets.WEBHOOK_URL }}/api/v1/workflow-github?telegram_chat_id=${{ secrets.TELEGRAM_CHAT_ID }}&registry=Google Cloud Platform
           body: '{"push_data":{"tag":"${{ env.IMAGE_TAG }}"},"repository":{"name":"${{ env.IMAGE_REPOSITORY }}"}}'
