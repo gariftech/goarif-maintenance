@@ -1,5 +1,6 @@
 {
   "name": "goarif-maintenance",
+  "description": "Website for Maintenance mode Go Arif & Orison Tech",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,6 +14,11 @@
     "release:patch": "npm run release -- --release-as patch",
     "release:minor": "npm run release -- --release-as minor",
     "release:major": "npm run release -- --release-as major"
+  },
+  "author": "masb0ymas",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.x"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.1",
